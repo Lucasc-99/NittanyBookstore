@@ -3,12 +3,12 @@ from wtforms import StringField, PasswordField, SubmitField
 from wtforms.validators import DataRequired, Length, EqualTo
 
 
-# NOTE: need to add constraints to disallow repeat user names
+# NOTE: need to somehow disallow repeat usernames
 class RegistrationForm(FlaskForm):
-    firstname = StringField('First Name')
-    lastname = StringField('Last Name')
-    phone = StringField('Phone Number')
-    address = StringField('Address')
+    firstname = StringField('First Name', validators=[DataRequired(), Length(max=20)])
+    lastname = StringField('Last Name', validators=[DataRequired(), Length(max=20)])
+    phone = StringField('Phone Number', validators=[Length(max=20)])
+    address = StringField('Address', validators=[Length(max=20)])
     username = StringField('Username', validators=[DataRequired(), Length(min=2, max=20)])
     password = PasswordField('Password', validators=[DataRequired(), Length(min=2, max=20)])
     confirm_password = PasswordField('Confirm Password',
