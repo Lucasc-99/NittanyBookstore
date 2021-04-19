@@ -34,4 +34,3 @@ def login():
             flash(f'Incorrect Username or Password', 'danger')
     return render_template('loginpage.html', form=form)
 
-# End Flask App Code

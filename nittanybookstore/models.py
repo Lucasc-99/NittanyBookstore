@@ -96,9 +96,6 @@ class Rating(db.Model):
                                           backref=db.backref('sent_use_scores', lazy=True))
 
 
-
-
-
 '''
 # Code for populating database w Books, Keywords, and Authors
 
