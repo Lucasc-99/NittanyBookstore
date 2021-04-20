@@ -1,10 +1,16 @@
-from nittanybookstore import db
+from flask_login import UserMixin
+
+from nittanybookstore import db, login_manager
 import csv
 import random
 from datetime import datetime
 
-# Begin Relational Database Schema
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(user_id)
 
+
+# Tables List:
 # keywords, authors, usefulness, trusts, User, Book, Keyword, Order, Author, Rating
 
 # Many-to-Many Tables
@@ -32,9 +38,10 @@ trusts = db.Table('trusts',
                   )
 
 
-class User(db.Model):
-    logname = db.Column(db.String(20), primary_key=True)
-    logpass = db.Column(db.String(20), unique=True, nullable=False)
+class User(db.Model, UserMixin):
+    id = db.Column(db.Integer, primary_key=True)
+    logname = db.Column(db.String(20), unique=True)
+    logpass = db.Column(db.String(20), nullable=False)
     access = db.Column(db.Integer, nullable=False)
     fname = db.Column(db.String(50))
     lname = db.Column(db.String(50))
