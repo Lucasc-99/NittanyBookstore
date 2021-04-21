@@ -7,9 +7,21 @@
         <img class="rounded-circle account-img" src="{{ image_file }}">
         <div class="media-body">
           <h2 class="account-heading">{{ current_user.logname }}</h2>
-          <p class="text-secondary">{{ current_user.fname }} {{ current_user.lname }}</p>
+          <p class="text-secondary">Name: {{ current_user.fname }} {{ current_user.lname }}</p>
+            {% if current_user.title %}
+            <p class="text-secondary">Title: {{ current_user.title }}</p>
+            {% endif %}
+            {% if current_user.phone %}
+            <p class="text-secondary">Phone: {{ current_user.phone }}</p>
+            {% endif %}
+            {% if current_user.addr %}
+            <p class="text-secondary">Address: {{ current_user.addr }}</p>
+            {% endif %}
+
         </div>
       </div>
     </div>
+
+<div class="content-section"></div>
 
 {% endblock content %}

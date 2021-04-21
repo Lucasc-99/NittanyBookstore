@@ -2,4 +2,51 @@
 
 {% block content %}
 <h1>Search for Books Below</h1>
+
+<form method="POST" action="">
+    {{ form.hidden_tag() }}
+    <fieldset class ="form-group">
+      <legend class = "border-bottom mb-4"></legend>
+      <div class="form-group">
+          {{ form.title_field.label(class="form-control-label") }}
+        {{ form.title_field(class="form-control form-control-lg") }}
+      </div>
+
+      <div class="form-group">
+          {{ form.author_field.label(class="form-control-label") }}
+            {{ form.author_field(class="form-control form-control-lg") }}
+      </div>
+        <div class="form-group">
+            {{ form.publisher_field.label(class="form-control-label") }}
+            {{ form.publisher_field(class="form-control form-control-lg") }}
+        </div>
+
+        <div class="form-group">
+            {{ form.language_field.label(class="form-control-label") }}
+            {{ form.language_field(class="form-control form-control-lg") }}
+        </div>
+
+        <div class="form-group">
+            {{ form.order_by_field.label(class="form-control-label") }}
+        {{ form.order_by_field(class="form-control form-control-lg") }}
+        </div>
+
+    </fieldset>
+    <div class="form-group">
+      {{ form.submit(class="btn btn-outline-info")}}
+    </div>
+  </form>
+
+{% for b in books %}
+        <article class="media content-section">
+          <div class="media-body">
+            <div class="article-metadata">
+              <a class="mr-2" href="#">{{ b.title }}</a>
+              <small class="text-muted">{{ b.title }}</small>
+            </div>
+            <h2><a class="article-title" href="#">{{ b.title }}</a></h2>
+            <p class="article-content">{{ b.title }}</p>
+          </div>
+        </article>
+    {% endfor %}
 {% endblock content %}

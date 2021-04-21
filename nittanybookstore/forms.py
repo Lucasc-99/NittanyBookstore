@@ -1,8 +1,20 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField
+from wtforms import StringField, PasswordField, SubmitField, DateField, SelectField
 from wtforms.validators import DataRequired, Length, EqualTo
 
-# NOTE: need to somehow disallow repeat usernames
+
+class SearchBarForm(FlaskForm):
+    choices = [('avgscore', 'Highest Rated'),
+                ('date', 'Publish Date'),
+               ('avgtrustedscore', 'Highest Trusted Ratings')]
+
+    title_field = StringField('Title')
+    author_field = StringField('Author')
+    publisher_field = StringField('Publisher')
+    language_field = StringField('Language')
+    order_by_field = SelectField('Order By', choices=choices)
+    submit = SubmitField('Search')
+
 
 class RegistrationForm(FlaskForm):
     firstname = StringField('First Name', validators=[DataRequired(), Length(max=20)])
@@ -14,6 +26,7 @@ class RegistrationForm(FlaskForm):
     confirm_password = PasswordField('Confirm Password',
                                      validators=[DataRequired(), EqualTo('password'), Length(min=2, max=20)])
     submit = SubmitField('Sign Up')
+
 
 class LoginForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired(), Length(min=2, max=20)])

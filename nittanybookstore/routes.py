@@ -1,5 +1,5 @@
 from flask import render_template, url_for, flash, redirect, request
-from nittanybookstore.forms import LoginForm, RegistrationForm
+from nittanybookstore.forms import LoginForm, RegistrationForm, SearchBarForm
 from nittanybookstore import app, bcrypt
 from nittanybookstore.models import *
 from flask_login import login_user, current_user, login_required, logout_user
@@ -8,7 +8,11 @@ from flask_login import login_user, current_user, login_required, logout_user
 @app.route('/homepage', methods=['GET', 'POST'])
 @login_required
 def home():
-    return render_template('homepage.html')
+    form = SearchBarForm()
+    books = []
+    if form.validate_on_submit(): # add query here
+        books = []
+    return render_template('homepage.html', form=form, books=books)
 
 
 @app.route('/about')
@@ -76,3 +80,9 @@ def profile():
 @login_required
 def recommended():
     return render_template('recommendedpage.html')
+
+
+@app.route('/order_history')
+@login_required
+def order_history():
+    return render_template('orderhistorypage.html')

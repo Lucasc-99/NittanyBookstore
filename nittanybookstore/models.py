@@ -24,16 +24,16 @@ authors = db.Table('authors',
                    db.Column('authorID', db.Integer, db.ForeignKey('author.authorID'), primary_key=True)
                    )
 
-# Need something else here?
+
 usefulness = db.Table('usefulness',
-                      db.Column('logname', db.String(15), db.ForeignKey('user.logname'), primary_key=True),
+                      db.Column('id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
                       db.Column('ratingID', db.Integer, db.ForeignKey('rating.ratingID'), primary_key=True),
                       db.Column('useScore', db.Integer, nullable=True)
                       )
 
 trusts = db.Table('trusts',
-                  db.Column('sender', db.String(15), db.ForeignKey('user.logname'), primary_key=True),
-                  db.Column('receiver', db.String(15), db.ForeignKey('user.logname'), primary_key=True),
+                  db.Column('sender', db.Integer, db.ForeignKey('user.id'), primary_key=True),
+                  db.Column('receiver', db.Integer, db.ForeignKey('user.id'), primary_key=True),
                   db.Column('trustScore', db.Integer, nullable=True)
                   )
 
@@ -82,7 +82,7 @@ class Order(db.Model):
     price = db.Column(db.Integer, nullable=False)
     time = db.Column(db.DATE, nullable=False)
     amount = db.Column(db.Integer, nullable=False)
-    user_id = db.Column(db.String(20), db.ForeignKey('user.logname'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     book_isbn = db.Column(db.String(15), db.ForeignKey('book.ISBN'), nullable=False)
 
 
@@ -97,7 +97,7 @@ class Rating(db.Model):
     ratingID = db.Column(db.Integer, primary_key=True)
     ratingScore = db.Column(db.Integer, nullable=False)
     ratingComment = db.Column(db.String(400))
-    user_id = db.Column(db.String(20), db.ForeignKey('user.logname'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     book_isbn = db.Column(db.String(15), db.ForeignKey('book.ISBN'), nullable=False)
     received_use_scores = db.relationship('User', secondary=usefulness, lazy='subquery',
                                           backref=db.backref('sent_use_scores', lazy=True))
