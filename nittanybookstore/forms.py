@@ -4,7 +4,7 @@ from wtforms.validators import DataRequired, Length, EqualTo, NumberRange
 
 
 class RateForm(FlaskForm):
-    rate_score_field = IntegerField('Score/10', validators=[DataRequired(), NumberRange(0, 10)])
+    rate_score_field = IntegerField('Score out of 10', validators=[DataRequired(), NumberRange(0, 10)])
     rate_comment_field = TextAreaField('Comment', validators=[Length(max=400)])
     submit = SubmitField('Submit')
 

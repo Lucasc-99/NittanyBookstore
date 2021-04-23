@@ -21,13 +21,35 @@
           </div>
 </article>
 
-<h2>Order this Book</h2>
-
-<h2>Rate this Book</h2>
+<h2>  Order this Book:</h2>
 
 
+<h2>  Review this Book:</h2>
+<article class="media content-section">
+    <div class="media-body">
+<form method="POST" action="">
+    {{ form.hidden_tag() }}
+    <fieldset class ="form-group">
+      <div class="form-group">
+          {{ form.rate_score_field.label(class="form-control-label") }}
+        {{ form.rate_score_field(class="form-control form-control-lg") }}
+      </div>
 
-<h2>Ratings</h2>
+        <div class="form-group">
+            {{ form.rate_comment_field.label(class="form-control-label") }}
+            {{ form.rate_comment_field(class="form-control form-control-lg") }}
+        </div>
+
+    </fieldset>
+    <div class="form-group">
+      {{ form.submit(class="btn btn-outline-info")}}
+    </div>
+  </form>
+        </div>
+</article>
+
+
+<h2>  Ratings:</h2>
 {% for r in b.ratings %}
   <article class="media content-section">
           <div class="media-body">

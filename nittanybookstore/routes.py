@@ -106,7 +106,7 @@ def logout():
     return redirect(url_for('login'))
 
 
-@app.route('/user_profile/<userid>')
+@app.route('/user_profile/<userid>', methods=['GET', 'POST'])
 @login_required
 def profile(userid):
     if userid is None:
@@ -128,7 +128,7 @@ def order_history():
     return render_template('orderhistorypage.html')
 
 
-@app.route('/book/<book_isbn>')
+@app.route('/book/<book_isbn>', methods=['GET', 'POST'])
 @login_required
 def book(book_isbn):
     img = url_for('static', filename="pictures/books.png")
@@ -138,18 +138,19 @@ def book(book_isbn):
     if b:
         if r_form.validate_on_submit():
             rec = Rating.query.filter_by(user_id=current_user.id, book_isbn=book_isbn).first()
+            print(type(r_form.rate_score_field.data))
             if rec is None:
                 if r_form.rate_comment_field != "":
-                    r = Rating(ratingScore=r_form.rate_score_field.data, ratingComment=r_form.rate_comment_field,
+                    r = Rating(ratingScore=r_form.rate_score_field.data, ratingComment=r_form.rate_comment_field.data,
                                book_isbn=book_isbn, user_id=current_user.id)
                 else:
                     r = Rating(ratingScore=r_form.rate_score_field.data, book_isbn=book_isbn, user_id=current_user.id)
 
-                # db.session.add(r)
-                # db.session.commit()
+                db.session.add(r)
+                db.session.commit()
                 flash(f'Thank you for your review!', 'success')
             else:
                 flash(f'You have already reviewed this book', 'danger')
-        return render_template('bookpage.html', b=b, u=User, image_file=img, )
+        return render_template('bookpage.html', b=b, u=User, image_file=img, form=r_form)
     else:
         return redirect(url_for('home'))
