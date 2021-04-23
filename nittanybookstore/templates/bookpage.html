@@ -1,0 +1,48 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<article class="media content-section">
+    <img class="rounded-circle account-img" src="{{ image_file }}">
+          <div class="media-body">
+            <h2><a class="article-title" href="#">{{ b.title }}</a></h2>
+              {% for a in b.authors %}
+                    <p class="article-content">{{ a.fname }} {{ a.lname }}</p>
+              {% endfor %}
+              {% if b.publisher %}
+              <p class="article-content">{{ b.publisher }}</p>
+              {% endif %}
+              {% if b.language %}
+              <p class="article-content">{{ b.language.upper() }}</p>
+              {% endif %}
+              {% if b.date %}
+              <p class="article-content">{{ b.date.date() }}</p>
+              {% endif %}
+              <p class="article-content">Stock: {{ b.stock }}</p>
+          </div>
+</article>
+
+<h2>Order this Book</h2>
+
+<h2>Rate this Book</h2>
+
+
+
+<h2>Ratings</h2>
+{% for r in b.ratings %}
+  <article class="media content-section">
+          <div class="media-body">
+              {% if u.query.filter_by(id=r.user_id).first() %}
+                <h3><a class="article-title" href="{{url_for('profile',userid=u.query.filter_by(id=r.user_id).first().id)}}">
+                    {{ u.query.filter_by(id=r.user_id).first().logname }}</a></h3>
+              {% else %}
+                <h3><a class="article-title" href="#">Anonymous</a></h3>
+              {% endif %}
+
+             <p class="article-content">{{ r.ratingScore }}/10</p>
+            {% if r.ratingComment %}
+              <p class="article-content">{{ r.ratingComment }}</p>
+            {% endif %}
+          </div>
+</article>
+{% endfor %}
+{% endblock content %}

@@ -95,12 +95,16 @@ class Author(db.Model):
 
 class Rating(db.Model):
     ratingID = db.Column(db.Integer, primary_key=True)
-    ratingScore = db.Column(db.Integer, nullable=False)
+    ratingScore = db.Column(db.Integer, nullable=False)  # must be 0-10
     ratingComment = db.Column(db.String(400))
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     book_isbn = db.Column(db.String(15), db.ForeignKey('book.ISBN'), nullable=False)
     received_use_scores = db.relationship('User', secondary=usefulness, lazy='subquery',
                                           backref=db.backref('sent_use_scores', lazy=True))
+
+
+
+#def populate_trusts_reviews_orders():
 
 
 '''
