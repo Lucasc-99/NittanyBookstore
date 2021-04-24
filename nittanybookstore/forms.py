@@ -3,6 +3,11 @@ from wtforms import StringField, PasswordField, SubmitField, SelectField, Intege
 from wtforms.validators import DataRequired, Length, EqualTo, NumberRange
 
 
+class OrderForm(FlaskForm):
+    quantity_field = IntegerField('Quantity', validators=[DataRequired(), NumberRange(0, 10)])
+    submit = SubmitField('Order')
+
+
 class RateForm(FlaskForm):
     rate_score_field = IntegerField('Score out of 10', validators=[DataRequired(), NumberRange(0, 10)])
     rate_comment_field = TextAreaField('Comment', validators=[Length(max=400)])

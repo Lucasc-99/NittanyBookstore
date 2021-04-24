@@ -2,7 +2,7 @@ from flask import render_template, url_for, flash, redirect, request
 from sqlalchemy import text
 import datetime
 
-from nittanybookstore.forms import LoginForm, RegistrationForm, SearchBarForm, RateForm
+from nittanybookstore.forms import LoginForm, RegistrationForm, SearchBarForm, RateForm, OrderForm
 from nittanybookstore import app, bcrypt
 from nittanybookstore.models import *
 from flask_login import login_user, current_user, login_required, logout_user
@@ -134,6 +134,7 @@ def book(book_isbn):
     img = url_for('static', filename="pictures/books.png")
     b = Book.query.filter_by(ISBN=book_isbn).first()
     r_form = RateForm()
+    o_form = OrderForm()
 
     if b:
         if r_form.validate_on_submit():
@@ -151,6 +152,6 @@ def book(book_isbn):
                 flash(f'Thank you for your review!', 'success')
             else:
                 flash(f'You have already reviewed this book', 'danger')
-        return render_template('bookpage.html', b=b, u=User, image_file=img, form=r_form)
+        return render_template('bookpage.html', b=b, u=User, image_file=img, form=r_form, form_order=o_form)
     else:
         return redirect(url_for('home'))

@@ -23,6 +23,28 @@
 
 <h2>  Order this Book:</h2>
 
+<article class="media content-section">
+    <div class="media-body">
+<form method="POST" action="">
+    {{ form_order.hidden_tag() }}
+    <fieldset class ="form-group">
+      <div class="form-group">
+          {{ form_order.quantity_field.label(class="form-control-label") }}
+        {{ form_order.quantity_field(class="form-control form-control-lg") }}
+      </div>
+    </fieldset>
+    <div class="form-group">
+      {{ form_order.submit(class="btn btn-outline-info")}}
+    </div>
+  </form>
+        </div>
+</article>
+
+
+
+
+
+
 
 <h2>  Review this Book:</h2>
 <article class="media content-section">
