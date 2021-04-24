@@ -37,6 +37,10 @@ trusts = db.Table('trusts',
                   db.Column('trustScore', db.Integer, nullable=True)
                   )
 
+costs = db.Table('costs',
+                 db.Column('book_isbn', db.String(15), primary_key=True),
+                 db.Column('cost'), db.Integer)
+
 
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
