@@ -1,8 +1,8 @@
-from flask import render_template, url_for, flash, redirect, request
+from flask import render_template, url_for, flash, redirect
 from sqlalchemy import text
 import datetime
 
-from nittanybookstore.forms import LoginForm, RegistrationForm, SearchBarForm, RateForm, OrderForm
+from nittanybookstore.forms import LoginForm, RegistrationForm, SearchBarForm, RateForm, OrderForm, TrustForm
 from nittanybookstore import app, bcrypt
 from nittanybookstore.models import *
 from flask_login import login_user, current_user, login_required, logout_user
@@ -113,7 +113,21 @@ def profile(userid):
         userid = current_user.id
     img = url_for('static', filename="pictures/default_user_profile.jpg")
     u = User.query.filter_by(id=userid).first()
-    return render_template('profilepage.html', image_file=img, b=Book, u=u)
+    t_form = TrustForm()
+    if current_user != userid and t_form.validate_on_submit():
+        t_score = None
+        if t_form.trust_field.data == 'trust_user':
+            t_score = 1
+        elif t_form.trust_field.data == 'distrust_user':
+            t_score = -1
+
+        if userid in current_user.trust_scored_users:
+            trusts.query.filter_by(sender=current_user.id, receiver=userid).update(dict(trustScore=t_score))
+        else:
+            ins = trusts.insert().values(sender=current_user.id, receiver=userid, trustScore=t_score)
+            db.session.execute(ins)
+        db.session.commit()
+    return render_template('profilepage.html', image_file=img, b=Book, u=u, t=trusts, form=t_form)
 
 
 @app.route('/recommended_page')
@@ -125,7 +139,7 @@ def recommended():
 @app.route('/order_history')
 @login_required
 def order_history():
-    return render_template('orderhistorypage.html')
+    return render_template('orderhistorypage.html', b=Book)
 
 
 @app.route('/book/<book_isbn>', methods=['GET', 'POST'])
@@ -133,6 +147,7 @@ def order_history():
 def book(book_isbn):
     img = url_for('static', filename="pictures/books.png")
     b = Book.query.filter_by(ISBN=book_isbn).first()
+    c = db.session.query(costs).filter_by(book_isbn=book_isbn).first()
     r_form = RateForm()
     o_form = OrderForm()
 
@@ -152,6 +167,16 @@ def book(book_isbn):
                 flash(f'Thank you for your review!', 'success')
             else:
                 flash(f'You have already reviewed this book', 'danger')
-        return render_template('bookpage.html', b=b, u=User, image_file=img, form=r_form, form_order=o_form)
+        elif o_form.validate_on_submit():
+            if b.stock - o_form.quantity_field.data > 0:
+                order = Order(price=c.cost*o_form.quantity_field.data, time=datetime.now(),
+                              amount=o_form.quantity_field.data, user_id=current_user.id, book_isbn=book_isbn)
+                db.session.add(order)
+                b.stock = b.stock - o_form.quantity_field.data
+                db.session.commit()
+                flash(f'Thank you for your order!', 'success')
+            else:
+                flash(f'That order cannot be satisfied with our current stock', 'danger')
+        return render_template('bookpage.html', b=b, c=c, u=User, image_file=img, form=r_form, form_order=o_form)
     else:
         return redirect(url_for('home'))

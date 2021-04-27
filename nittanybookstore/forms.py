@@ -3,8 +3,22 @@ from wtforms import StringField, PasswordField, SubmitField, SelectField, Intege
 from wtforms.validators import DataRequired, Length, EqualTo, NumberRange
 
 
+class TrustForm(FlaskForm):
+    # Encoding yes:1, no:-1, none:None
+    choices = [('no_selection', '...'), ('trust_user', 'Yes'), ('distrust_user', 'No')]
+    trust_field = SelectField('trust', choices=choices, validators=[DataRequired()])
+    submit = SubmitField('Submit')
+
+
+class UsefulnessForm(FlaskForm):
+    # Encoding useless:-1, useful:1, very useful:2
+    choices = [('useless', 'Useless'), ('useful', 'Useful'), ('very_useful','Very Useful')]
+    use_field = SelectField('use', choices=choices, validators=[DataRequired()])
+    submit = SubmitField('Submit')
+
+
 class OrderForm(FlaskForm):
-    quantity_field = IntegerField('Quantity', validators=[DataRequired(), NumberRange(0, 10)])
+    quantity_field = IntegerField('Quantity', validators=[DataRequired(), NumberRange(1, 10)])
     submit = SubmitField('Order')
 
 

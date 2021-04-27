@@ -22,14 +22,25 @@
 
         </div>
       </div>
-      {% if current_user.id != u.id %}
+    {% if current_user.id != u.id %}
         <p class="text-secondary">Trust this User?</p>
-      {% endif %}
+        <form method="POST" action="">
+            {{ form.hidden_tag() }}
+            <fieldset class ="form-group">
+              <div class="form-group">
+                  {{ form.trust_field(class="form-control form-control-sm") }}
+              </div>
+            </fieldset>
+            <div class="form-group">
+              {{ form.submit(class="btn btn-outline-info")}}
+            </div>
+        </form>
+    {% endif %}
     </div>
 
 
 <h2>  Ratings:</h2>
-{% for r in u.ratings %}
+{% for r in u.ratings|reverse%}
   <article class="media content-section">
           <div class="media-body">
                 <h3><a class="article-title" href="{{ url_for('book', book_isbn=r.book_isbn) }}">

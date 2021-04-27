@@ -5,6 +5,7 @@ import csv
 import random
 from datetime import datetime
 
+
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(user_id)
@@ -38,8 +39,8 @@ trusts = db.Table('trusts',
                   )
 
 costs = db.Table('costs',
-                 db.Column('book_isbn', db.String(15), primary_key=True),
-                 db.Column('cost'), db.Integer)
+                 db.Column('book_isbn', db.String(15), db.ForeignKey('book.ISBN'), primary_key=True),
+                 db.Column('cost', db.Integer))
 
 
 class User(db.Model, UserMixin):
@@ -55,8 +56,8 @@ class User(db.Model, UserMixin):
     orders = db.relationship('Order', backref='user', lazy=True)
     ratings = db.relationship('Rating', backref='user', lazy=True)
     trust_scored_users = db.relationship('User', secondary=trusts,
-                                         primaryjoin=(trusts.c.sender == logname),
-                                         secondaryjoin=(trusts.c.receiver == logname),
+                                         primaryjoin=(trusts.c.sender == id),
+                                         secondaryjoin=(trusts.c.receiver == id),
                                          lazy='subquery',
                                          backref=db.backref('trust_scored_by', lazy=True))
 
@@ -106,12 +107,14 @@ class Rating(db.Model):
     received_use_scores = db.relationship('User', secondary=usefulness, lazy='subquery',
                                           backref=db.backref('sent_use_scores', lazy=True))
 
-
-
-#def populate_trusts_reviews_orders():
-
-
 '''
+def populate_costs_table():
+    for b in Book.query.all():
+        c = costs.insert().values(book_isbn=b.ISBN, cost=random.randint(8, 20))
+        db.session.execute(c)
+        db.session.commit()
+
+
 # Code for populating database w Books, Keywords, and Authors
 
 genres = {0: 'fantasy', 1: 'sci-fi', 2: 'romance', 3: 'mystery'}

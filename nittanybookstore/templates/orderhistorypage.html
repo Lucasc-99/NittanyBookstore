@@ -1,5 +1,17 @@
 {% extends "layout.html" %}
 
 {% block content %}
-<h1>Order History Under Construction</h1>
+<h2>Order History: </h2>
+{% for o in current_user.orders|reverse %}
+  <article class="media content-section">
+          <div class="media-body">
+              <h3><a class="article-title" href="{{ url_for('book', book_isbn=o.book_isbn) }}">
+                    {{ b.query.filter_by(ISBN=o.book_isbn).first().title }}</a></h3>
+              <p class="article-content">Time: {{o.time}} </p>
+              <p class="article-content">Quantity: {{o.amount}} </p>
+              <p class="article-content">Unit Price: ${{o.price / o.amount}} </p>
+              <p class="article-content">Total Price: ${{o.price}} </p>
+          </div>
+</article>
+{% endfor %}
 {% endblock content %}

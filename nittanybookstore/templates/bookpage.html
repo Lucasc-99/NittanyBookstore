@@ -17,6 +17,7 @@
               {% if b.date %}
               <p class="article-content">{{ b.date.date() }}</p>
               {% endif %}
+              <p class="article-content">Price: ${{ c.cost }}</p>
               <p class="article-content">Stock: {{ b.stock }}</p>
           </div>
 </article>
