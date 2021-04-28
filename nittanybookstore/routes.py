@@ -1,4 +1,4 @@
-from flask import render_template, url_for, flash, redirect
+from flask import render_template, url_for, flash, redirect, request
 from sqlalchemy import text
 import datetime
 
@@ -21,10 +21,27 @@ def home():
     if s_form.validate_on_submit():
         order = ""
         sub = ""
-        if s_form.order_by_field.data == "avgscore":
+        ratings_sub = "rating r"
+        authorship = "a.authorID = aut.authorID"
+
+        if s_form.half_separation.data == 'enabled':
+            authorship = f"""
+                
+            """
+
+        if s_form.order_by_field.data=='avgtrustedscore':
+            ratings_sub = f"""
+                (SELECT book_isbn, ratingScore
+                FROM (Rating r INNER JOIN User u ON r.user_id = u.id) INNER JOIN trusts t ON t.receiver = u.id 
+                GROUP BY u.id
+                HAVING SUM(t.trustScore) > 0) AS r
+                
+            """
+
+        if s_form.order_by_field.data == "avgscore" or s_form.order_by_field.data == 'avgtrustedscore':
             order = "ORDER BY rateavg DESC"
-            sub = """
-                LEFT OUTER JOIN (SELECT b.ISBN AS isbn, AVG(r.ratingScore) as rateavg FROM book b, rating r 
+            sub = f"""
+                LEFT OUTER JOIN (SELECT b.ISBN AS isbn, AVG(r.ratingScore) as rateavg FROM book b, {ratings_sub} 
                 WHERE b.ISBN = r.book_isbn 
                 GROUP BY b.ISBN 
                 ) rateavgs ON rateavgs.isbn = b.ISBN 
@@ -114,6 +131,7 @@ def profile(userid):
     img = url_for('static', filename="pictures/default_user_profile.jpg")
     u = User.query.filter_by(id=userid).first()
     t_form = TrustForm()
+
     if current_user != userid and t_form.validate_on_submit():
         t_score = None
         if t_form.trust_field.data == 'trust_user':
@@ -121,13 +139,30 @@ def profile(userid):
         elif t_form.trust_field.data == 'distrust_user':
             t_score = -1
 
-        if userid in current_user.trust_scored_users:
-            trusts.query.filter_by(sender=current_user.id, receiver=userid).update(dict(trustScore=t_score))
+        if u in current_user.trust_scored_users:
+            db.session.query(trusts).filter_by(sender=current_user.id, receiver=u.id).update(dict(trustScore=t_score))
         else:
-            ins = trusts.insert().values(sender=current_user.id, receiver=userid, trustScore=t_score)
+            ins = trusts.insert().values(sender=current_user.id, receiver=u.id, trustScore=t_score)
             db.session.execute(ins)
         db.session.commit()
-    return render_template('profilepage.html', image_file=img, b=Book, u=u, t=trusts, form=t_form)
+
+    agg_t_score = 0
+    received_t_scores = db.session.query(trusts).filter_by(receiver=u.id).all()
+    for s in received_t_scores:
+        if s.trustScore:
+            agg_t_score += s.trustScore
+
+    rec = db.session.query(trusts).filter_by(sender=current_user.id, receiver=u.id).first()
+    prompt_text = 'Trust this User?'
+    if rec is None:
+        pass
+    elif rec.trustScore == 1:
+        prompt_text = 'You trust this user'
+    elif rec.trustScore == -1:
+        prompt_text = 'You do not trust this user'
+
+    return render_template('profilepage.html', image_file=img, b=Book, u=u, t=trusts,
+                           form=t_form, prompt_text=prompt_text, agg_t_score=agg_t_score)
 
 
 @app.route('/recommended_page')
@@ -177,6 +212,17 @@ def book(book_isbn):
                 flash(f'Thank you for your order!', 'success')
             else:
                 flash(f'That order cannot be satisfied with our current stock', 'danger')
+        elif request.method == 'POST':
+            flash(f'Make sure you are filling out your order or rating correctly', 'danger')
         return render_template('bookpage.html', b=b, c=c, u=User, image_file=img, form=r_form, form_order=o_form)
     else:
         return redirect(url_for('home'))
+
+
+@app.route('/rating/<rating_id>')
+@login_required
+def rating_page(rating_id):
+    r = Rating.query.filter_by(ratingID=rating_id).first()
+    b = Book.query.filter_by(ISBN=r.book_isbn).first()
+    u = User.query.filter_by(id=r.user_id).first()
+    return render_template('rating_page.html', r=r, b=b, u=u)

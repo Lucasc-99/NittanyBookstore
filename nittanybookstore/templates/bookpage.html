@@ -31,7 +31,7 @@
     <fieldset class ="form-group">
       <div class="form-group">
           {{ form_order.quantity_field.label(class="form-control-label") }}
-        {{ form_order.quantity_field(class="form-control form-control-lg") }}
+          {{ form_order.quantity_field(class="form-control form-control-lg") }}
       </div>
     </fieldset>
     <div class="form-group">
@@ -55,7 +55,7 @@
     <fieldset class ="form-group">
       <div class="form-group">
           {{ form.rate_score_field.label(class="form-control-label") }}
-        {{ form.rate_score_field(class="form-control form-control-lg") }}
+          {{ form.rate_score_field(class="form-control form-control-lg") }}
       </div>
 
         <div class="form-group">
@@ -74,7 +74,7 @@
 
 <h2>  Ratings:</h2>
 {% for r in b.ratings %}
-  <article class="media content-section">
+  <article class="media content-section" href="{{ url_for('rating_page', rating_id=r.ratingID)}}">
           <div class="media-body">
               {% if u.query.filter_by(id=r.user_id).first() %}
                 <h3><a class="article-title" href="{{url_for('profile',userid=u.query.filter_by(id=r.user_id).first().id)}}">

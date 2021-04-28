@@ -9,26 +9,70 @@
       <legend class = "border-bottom mb-4"></legend>
       <div class="form-group">
           {{ form.title_field.label(class="form-control-label") }}
-        {{ form.title_field(class="form-control form-control-lg") }}
+          {% if form.title_field.errors %}
+            {{ form.title_field(class="form-control form-control-lg is-invalid") }}
+          <div class="invalid-feedback">
+                {% for error in form.title_field.errors %}
+                    <span>{{ error }}</span>
+                {% endfor %}
+            </div>
+          {% else %}
+            {{ form.title_field(class="form-control form-control-lg") }}
+          {% endif %}
       </div>
 
       <div class="form-group">
           {{ form.author_field.label(class="form-control-label") }}
+
+          {% if form.author_field.errors %}
+            {{ form.author_field(class="form-control form-control-lg is-invalid") }}
+          <div class="invalid-feedback">
+                {% for error in form.author_field.errors %}
+                    <span>{{ error }}</span>
+                {% endfor %}
+            </div>
+          {% else %}
             {{ form.author_field(class="form-control form-control-lg") }}
+          {% endif %}
       </div>
+
         <div class="form-group">
             {{ form.publisher_field.label(class="form-control-label") }}
+            {% if form.publisher_field.errors %}
+            {{ form.publisher_field(class="form-control form-control-lg is-invalid") }}
+          <div class="invalid-feedback">
+                {% for error in form.publisher_field.errors %}
+                    <span>{{ error }}</span>
+                {% endfor %}
+            </div>
+          {% else %}
             {{ form.publisher_field(class="form-control form-control-lg") }}
+          {% endif %}
         </div>
 
         <div class="form-group">
             {{ form.language_field.label(class="form-control-label") }}
+
+            {% if form.language_field.errors %}
+            {{ form.language_field(class="form-control form-control-lg is-invalid") }}
+          <div class="invalid-feedback">
+                {% for error in form.language_field.errors %}
+                    <span>{{ error }}</span>
+                {% endfor %}
+            </div>
+          {% else %}
             {{ form.language_field(class="form-control form-control-lg") }}
+          {% endif %}
         </div>
 
         <div class="form-group">
             {{ form.order_by_field.label(class="form-control-label") }}
-        {{ form.order_by_field(class="form-control form-control-lg") }}
+            {{ form.order_by_field(class="form-control form-control-lg") }}
+        </div>
+
+         <div class="form-group">
+            {{ form.half_separation.label(class="form-control-label") }}
+            {{ form.half_separation(class="form-control form-control-lg") }}
         </div>
 
     </fieldset>

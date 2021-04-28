@@ -1,11 +1,11 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, SelectField, IntegerField, TextAreaField
+from wtforms import StringField, PasswordField, SubmitField, SelectField, IntegerField, TextAreaField, BooleanField
 from wtforms.validators import DataRequired, Length, EqualTo, NumberRange
 
 
 class TrustForm(FlaskForm):
     # Encoding yes:1, no:-1, none:None
-    choices = [('no_selection', '...'), ('trust_user', 'Yes'), ('distrust_user', 'No')]
+    choices = [('no_selection', '...'), ('trust_user', 'Trust'), ('distrust_user', 'Distrust')]
     trust_field = SelectField('trust', choices=choices, validators=[DataRequired()])
     submit = SubmitField('Submit')
 
@@ -18,7 +18,7 @@ class UsefulnessForm(FlaskForm):
 
 
 class OrderForm(FlaskForm):
-    quantity_field = IntegerField('Quantity', validators=[DataRequired(), NumberRange(1, 10)])
+    quantity_field = IntegerField('Quantity (max 10 books)', validators=[DataRequired(), NumberRange(1, 10)])
     submit = SubmitField('Order')
 
 
@@ -35,6 +35,8 @@ class SearchBarForm(FlaskForm):
 
     title_field = StringField('Title')
     author_field = StringField('Author')
+    half_separation = SelectField('Half Degree Separation of Authorship',
+                                  choices=[('disabled', 'Disabled'), ('enabled', 'Enabled')])
     publisher_field = StringField('Publisher')
     language_field = StringField('Language')
     order_by_field = SelectField('Order By', choices=choices)
