@@ -15,29 +15,32 @@ def load_user(user_id):
 # keywords, authors, usefulness, trusts, User, Book, Keyword, Order, Author, Rating
 
 # Many-to-Many Tables
+
+# Maps keywords to books
 keywords = db.Table('keywords',
                     db.Column('ISBN', db.String(15), db.ForeignKey('book.ISBN'), primary_key=True),
                     db.Column('word', db.String(50), db.ForeignKey('keyword.word'), primary_key=True)
                     )
 
+# For authorship
 authors = db.Table('authors',
                    db.Column('ISBN', db.String(15), db.ForeignKey('book.ISBN'), primary_key=True),
                    db.Column('authorID', db.Integer, db.ForeignKey('author.authorID'), primary_key=True)
                    )
 
-
+# For Usefulness Ratings
 usefulness = db.Table('usefulness',
                       db.Column('id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
                       db.Column('ratingID', db.Integer, db.ForeignKey('rating.ratingID'), primary_key=True),
                       db.Column('useScore', db.Integer, nullable=True)
                       )
-
+# Maps user trust ratings
 trusts = db.Table('trusts',
                   db.Column('sender', db.Integer, db.ForeignKey('user.id'), primary_key=True),
                   db.Column('receiver', db.Integer, db.ForeignKey('user.id'), primary_key=True),
                   db.Column('trustScore', db.Integer, nullable=True)
                   )
-
+# Maps books to price
 costs = db.Table('costs',
                  db.Column('book_isbn', db.String(15), db.ForeignKey('book.ISBN'), primary_key=True),
                  db.Column('cost', db.Integer))
@@ -106,74 +109,3 @@ class Rating(db.Model):
     book_isbn = db.Column(db.String(15), db.ForeignKey('book.ISBN'), nullable=False)
     received_use_scores = db.relationship('User', secondary=usefulness, lazy='subquery',
                                           backref=db.backref('sent_use_scores', lazy=True))
-
-'''
-
-def populate_costs_table():
-    for b in Book.query.all():
-        c = costs.insert().values(book_isbn=b.ISBN, cost=random.randint(8, 20))
-        db.session.execute(c)
-        db.session.commit()
-
-
-# Code for populating database w Books, Keywords, and Authors
-
-genres = {0: 'fantasy', 1: 'sci-fi', 2: 'romance', 3: 'mystery'}
-def populate_books():
-    db.create_all()
-    with open('nittanybookstore/books.csv', newline='') as booksdata:
-        r = csv.reader(booksdata, delimiter=',')
-        index = 0
-        for row in r:
-            if index == 0:
-                index += 1
-            else:
-                date = datetime.strptime(row[10],'%m/%d/%Y')
-                title = row[1]
-                lang = row[6]
-                isbn = row[4]
-                publisher = row[11]
-                genre = genres[random.randint(0, 3)]
-                index += 1
-                b = Book(ISBN=isbn, stock=100, language=lang, genre=genre, title=title, publisher=publisher, date=date)
-                for w in row[2].split(sep='/'):
-                    n = w.split(" ")
-
-                    if len(n) == 0:
-                        a = Author(lname="NA")
-                        recs = Author.query.filter_by(lname="NA").all()
-                    elif len(n) == 1:
-                        a = Author(lname=n[0])
-                        recs = Author.query.filter_by(lname=n[0]).all()
-                    elif len(n) == 2:
-                        a = Author(fname=n[0], lname=n[1])
-                        recs = Author.query.filter_by(fname=n[0], lname=n[1]).all()
-                    else:
-                        a = Author(fname=n[0], lname=n[-1])
-                        recs = Author.query.filter_by(fname=n[0], lname=n[-1]).all()
-
-                    # Add author if is new
-
-                    if len(recs) == 0:
-                        b.authors.append(a)
-                        db.session.add(a)
-                        db.session.commit()
-                    else:
-                        b.authors.extend(recs)
-
-                for k in title.split(" "):
-                    if k.isalpha() and k[0].isupper():
-                        recs = Keyword.query.filter_by(word=k).first()
-                        word = Keyword(word=k)
-                        if recs is None:
-                            b.keywords.append(word)
-                            db.session.add(word)
-                            db.session.commit()
-                        elif recs not in b.keywords:
-                            b.keywords.append(recs)
-
-                db.session.add(b)
-                index += 1
-
-        db.session.commit()
-'''

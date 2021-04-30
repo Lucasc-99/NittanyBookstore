@@ -16,14 +16,15 @@ def home():
 
     # Query builder for book search
     books = []
+
+    # Validate for search form
     if s_form.validate_on_submit():
-        today = date.today()
-        last_quarter = today.replace(month=today.month-3)
 
         order = ""
         sub = ""
         ratings_sub = "rating r"
 
+        # Subquery that filters out only trusted users ratings
         if s_form.order_by_field.data == 'avgtrustedscore':
             ratings_sub = f"""
                 (SELECT book_isbn, ratingScore
@@ -32,6 +33,7 @@ def home():
                 HAVING SUM(t.trustScore) > 0) AS r
             """
 
+        # Subquery if sort by average scores or average trusted scores
         if s_form.order_by_field.data == "avgscore" or s_form.order_by_field.data == 'avgtrustedscore':
             order = "ORDER BY rateavg DESC"
             sub = f"""
@@ -40,9 +42,12 @@ def home():
                 GROUP BY b.ISBN
                 ) rateavgs ON rateavgs.isbn = b.ISBN 
             """
+
+        # Order section if order by date
         elif s_form.order_by_field.data == "date":
             order = "ORDER BY datetime(b.date)"
 
+        # Final query for search, assuming no degree of separation enabled
         query_txt = f"""
             SELECT DISTINCT b.ISBN 
             FROM book b {sub}, authors aut, author a
@@ -56,6 +61,7 @@ def home():
                 LIMIT 100     
         """
 
+        # Query for degree 1 of separation enabled
         if s_form.half_separation.data == 'enabled' and s_form.author_field.data != "":
             half_sub = f"""(
                         SELECT a1.authorID as a1id, a2.authorID as a2id,
@@ -66,6 +72,8 @@ def home():
                             a1.authorID != a2.authorID
                         LIMIT 100
                         ) AS collabs """
+
+            # Collabs subquery documents author collaboration
 
             authors_sub_q = f"""
                 (SELECT DISTINCT a.authorID 
@@ -90,6 +98,8 @@ def home():
                 LIMIT 100
             """
 
+        # Query for degree 2 of separation
+        # Works similarly to 1 degree except 2 collabs tables are used instead of one
         elif s_form.half_separation.data == 'enabled2' and s_form.author_field.data != "":
             half_sub = f"""(
                                     SELECT a1.authorID as a1id, a2.authorID as a2id,
@@ -130,8 +140,8 @@ def home():
                             LIMIT 100
                         """
 
+        # Execute query and add data to list to send to HTML
         query_txt = text(query_txt)
-
         q = db.session.execute(query_txt)
 
         for row in q:
@@ -289,6 +299,7 @@ def book(book_isbn):
     ratings_list = []
 
     if b:
+        # n-ratings filter form validate
         if f_form.validate_on_submit():
             n = str(f_form.n.data)
             q = f"""
@@ -308,6 +319,7 @@ def book(book_isbn):
             for row in q_list:
                 ratings_list.append(Rating.query.filter_by(ratingID=row[0]).first())
 
+        # Review Form validate
         elif r_form.validate_on_submit():
             rec = Rating.query.filter_by(user_id=current_user.id, book_isbn=book_isbn).first()
             print(type(r_form.rate_score_field.data))
@@ -323,6 +335,8 @@ def book(book_isbn):
                 flash(f'Thank you for your review!', 'success')
             else:
                 flash(f'You have already reviewed this book', 'danger')
+
+        # Order form validate
         elif o_form.validate_on_submit():
             if b.stock - o_form.quantity_field.data > 0:
                 order = Order(price=c.cost * o_form.quantity_field.data, time=datetime.now(),
@@ -353,6 +367,7 @@ def rating_page(rating_id):
 
     form = UsefulnessForm()
 
+    # Validate for usefulness rating submission form
     if current_user.id != r.user_id and form.validate_on_submit():
         use_score = None
         if form.use_field.data == 'useless':
@@ -390,6 +405,7 @@ def manager_dashboard():
     filter_form = FilterStatisticsForm()
     a_form = AddBookForm()
 
+    # Validate for m-statistics filter form
     if filter_form.validate_on_submit():
         m = filter_form.m.data
     else:
@@ -397,6 +413,8 @@ def manager_dashboard():
     if current_user.access != 1:
         flash('You do not have permission to access that page', 'danger')
         redirect(url_for('home'))
+
+    # The following are the user and book statistics queries
 
     most_pop_books = f"""
         SELECT b.ISBN
@@ -451,6 +469,9 @@ def manager_dashboard():
         LIMIT {m}
     """
 
+    # The following loops add all of the queried data to object form
+    # These lists are all then passed to the HTML file for manager dashboard
+
     q = text(most_pop_books)
     q_result = db.session.execute(q)
     m_books = []
@@ -484,6 +505,7 @@ def manager_dashboard():
     s_form = StockLevelForm()
     p_form = PromoteUserForm()
 
+    # Validate for the change stock form
     if s_form.validate_on_submit():
         b = Book.query.filter_by(ISBN=s_form.isbn_field.data).first()
         if b:
@@ -494,6 +516,7 @@ def manager_dashboard():
         else:
             flash('Book not found!', 'danger')
 
+    # Validate for the promote user form
     elif p_form.validate_on_submit():
         u = User.query.filter_by(logname=p_form.logname_field.data).first()
         if u:
@@ -503,8 +526,8 @@ def manager_dashboard():
         else:
             flash('User not found!', 'danger')
 
+    # Validate for the Add Book form
     elif a_form.validate_on_submit():
-        print("Bruh")
         b = Book.query.filter_by(ISBN=a_form.ISBN.data).first()
         if b is not None:
             flash('A book with that ISBN already exists', 'danger')
@@ -514,7 +537,7 @@ def manager_dashboard():
             if a_form.d.data != "":
                 try:
                     d = datetime.strptime(a_form.d.data, '%m/%d/%Y')
-                except:
+                except: # Catches exception if user inputs incorrect date format
                     flag = False
             if flag:
                 b = Book(ISBN=a_form.ISBN.data, title=a_form.title.data,
@@ -527,7 +550,7 @@ def manager_dashboard():
                 flash(f'Successfully added {b.title}', 'success')
             else:
                 flash(f'Incorrect date format', 'danger')
-    print("Bruh 2")
+
     return render_template('managerdashboardpage.html', a_form=a_form,
                            s_form=s_form, p_form=p_form, m_books=m_books, m_authors=m_authors,
                            m_pubs=m_pubs, m_trust_users=m_trust_users, m_use_users=m_use_users,
