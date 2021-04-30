@@ -1,9 +1,8 @@
 from flask import render_template, url_for, flash, redirect, request
 from sqlalchemy import text
-import datetime
-
+from datetime import date
 from nittanybookstore.forms import LoginForm, RegistrationForm, SearchBarForm, RateForm, \
-    OrderForm, TrustForm, UsefulnessForm, TopNRatingsForm
+    OrderForm, TrustForm, UsefulnessForm, TopNRatingsForm, PromoteUserForm, StockLevelForm
 from nittanybookstore import app, bcrypt
 from nittanybookstore.models import *
 from flask_login import login_user, current_user, login_required, logout_user
@@ -17,6 +16,9 @@ def home():
     # Query builder for book search
     books = []
     if s_form.validate_on_submit():
+        today = date.today()
+        last_quarter = today.replace(month=today.month-3)
+
         order = ""
         sub = ""
         ratings_sub = "rating r"
@@ -86,6 +88,46 @@ def home():
                 {order}
                 LIMIT 100
             """
+
+        elif s_form.half_separation.data == 'enabled2' and s_form.author_field.data != "":
+            half_sub = f"""(
+                                    SELECT a1.authorID as a1id, a2.authorID as a2id,
+                                            (a2.fname||' '||a2.lname) as a2name,
+                                            (a1.fname||' '||a1.lname) as a1name
+                                    FROM authors aut1 LEFT JOIN author a1 ON aut1.authorID = a1.authorID,
+                                        authors aut2 LEFT JOIN author a2 ON aut2.authorID = a2.authorID
+                                    WHERE 
+                                        a1.authorID != a2.authorID
+                                    LIMIT 100
+                                    ) """
+
+            authors_sub_q = f"""
+                            (SELECT DISTINCT a.authorID 
+                            FROM author a, {half_sub} AS collabs1, {half_sub} AS collabs2
+                            WHERE 
+                            ((a.fname || ' ' || a.lname) LIKE '%{s_form.author_field.data}%') OR
+                            (a.authorID = collabs1.a1id AND collabs1.a2name LIKE '%{s_form.author_field.data}%') OR
+                            ( a.authorID = collabs1.a1id AND 
+                                collabs1.a2id = collabs2.a1id AND 
+                                collabs2.a2id != a.authorID AND
+                                collabs2.a2name LIKE '%{s_form.author_field.data}%'
+                                )
+                            LIMIT 100
+                            )
+
+                        """
+            query_txt = f"""
+                            SELECT DISTINCT b.ISBN
+                            FROM   book b {sub} INNER JOIN authors aut ON b.ISBN = aut.ISBN  
+                                INNER JOIN
+                                {authors_sub_q} a ON aut.authorID = a.authorID
+                            WHERE
+                            b.publisher LIKE '%{s_form.publisher_field.data}%' AND 
+                            b.title LIKE '%{s_form.title_field.data}%' AND 
+                            b.language LIKE '%{s_form.language_field.data}%'
+                            {order}
+                            LIMIT 100
+                        """
 
         query_txt = text(query_txt)
 
@@ -210,6 +252,8 @@ def recommended():
                 o1.book_isbn <> o2.book_isbn AND
                 o2.user_id = u.id AND
                 o2.book_isbn = b.ISBN
+        GROUP BY b.ISBN
+        ORDER BY COUNT(DISTINCT o2.orderID) DESC
         """
 
         query_txt = text(q)
@@ -337,9 +381,11 @@ def rating_page(rating_id):
     return render_template('rating_page.html', agg_u_score=agg_u_score, form=form, r=r, b=b, u=u)
 
 
-@app.route('/manager_dashboard')
+@app.route('/manager_dashboard', methods=['GET', 'POST'])
 @login_required
 def manager_dashboard():
+    today = date.today()
+    last_quarter = today.replace(month=today.month - 3)
     m = 5
     if current_user.access != 1:
         flash('You do not have permission to access that page', 'danger')
@@ -348,7 +394,8 @@ def manager_dashboard():
     most_pop_books = f"""
         SELECT b.ISBN
         FROM book b , `order` o
-        WHERE b.ISBN = o.book_isbn
+        WHERE b.ISBN = o.book_isbn AND
+        o.time >=  '{last_quarter}'
         GROUP BY b.ISBN
         ORDER BY COUNT(DISTINCT o.orderID) DESC
         LIMIT {m}
@@ -358,7 +405,8 @@ def manager_dashboard():
             SELECT a.authorID
             FROM author a, authors aut, 
                 (SELECT b.ISBN as book_isbn, COUNT(DISTINCT o.orderID) AS count
-                FROM book b INNER JOIN `order` o ON b.ISBN = o.book_isbn   
+                FROM book b INNER JOIN `order` o ON b.ISBN = o.book_isbn 
+                WHERE o.time >= '{last_quarter}'
                 GROUP BY b.ISBN ) AS countsTable
             WHERE 
                 a.authorID = aut.authorID AND 
@@ -371,7 +419,8 @@ def manager_dashboard():
     most_pop_publishers = f"""
                 SELECT DISTINCT b.publisher
                 FROM book b, `order` o
-                WHERE b.ISBN = o.book_isbn
+                WHERE b.ISBN = o.book_isbn AND
+                o.time >= {last_quarter}
                 GROUP BY b.publisher
                 ORDER BY COUNT(DISTINCT o.orderID) DESC
                 LIMIT {m}
@@ -425,5 +474,27 @@ def manager_dashboard():
     for row in q_result:
         m_use_users.append((User.query.filter_by(id=row[0]).first()))
 
-    return render_template('managerdashboardpage.html', m_books=m_books, m_authors=m_authors,
+    s_form = StockLevelForm()
+    p_form = PromoteUserForm()
+
+    if s_form.validate_on_submit():
+        b = Book.query.filter_by(ISBN=s_form.isbn_field.data).first()
+        if b:
+            b.stock += s_form.stock_change_field.data
+            b.stock *= (b.stock > 0)
+            db.session.commit()
+            flash(f'Stock for {b.title} changed to {b.stock}', 'success')
+        else:
+            flash('Book not found!', 'danger')
+
+    elif p_form.validate_on_submit():
+        u = User.query.filter_by(logname=p_form.logname_field.data).first()
+        if u:
+            u.access = 1
+            db.session.commit()
+            flash(f'User {u.logname} promoted', 'Success')
+        else:
+            flash('User not found!', 'danger')
+
+    return render_template('managerdashboardpage.html',s_form=s_form, p_form=p_form, m_books=m_books, m_authors=m_authors,
                            m_pubs=m_pubs, m_trust_users=m_trust_users, m_use_users=m_use_users)

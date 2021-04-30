@@ -5,11 +5,47 @@
 <br>
 <br>
 <h2>Add book or change stock level</h2>
+<article class="media content-section">
+            <div class="media-body">
+        <form method="POST" action="">
+            {{ s_form.hidden_tag() }}
+            <fieldset class ="form-group">
+              <div class="form-group">
+                  ISBN:
+                  {{ s_form.isbn_field(class="form-control form-control-lg") }}
+              </div>
+                <div class="form-group">
+                  Stock Level Change:
+                  {{ s_form.stock_change_field(class="form-control form-control-lg") }}
+              </div>
 
+            </fieldset>
+            <div class="form-group">
+              {{ s_form.submit(class="btn btn-outline-info")}}
+            </div>
+          </form>
+                </div>
+        </article>
 <br>
 <br>
-<h2>Promote user to superuser</h2>
+<h2>Promote User to Admin</h2>
+    <article class="media content-section">
+            <div class="media-body">
+        <form method="POST" action="">
+            {{ p_form.hidden_tag() }}
+            <fieldset class ="form-group">
+              <div class="form-group">
+                  User login name:
+                  {{ p_form.logname_field(class="form-control form-control-lg") }}
+              </div>
 
+            </fieldset>
+            <div class="form-group">
+              {{ p_form.submit(class="btn btn-outline-info")}}
+            </div>
+          </form>
+                </div>
+        </article>
 <br>
 <br>
 <h2>Most Popular Books this Quarter: </h2>

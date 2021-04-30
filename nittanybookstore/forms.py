@@ -3,6 +3,17 @@ from wtforms import StringField, PasswordField, SubmitField, SelectField, Intege
 from wtforms.validators import DataRequired, Length, EqualTo, NumberRange
 
 
+class PromoteUserForm(FlaskForm):
+    logname_field = StringField('User Login Name', validators=[DataRequired()])
+    submit = SubmitField('Promote')
+
+
+class StockLevelForm(FlaskForm):
+    isbn_field = StringField('ISBN', validators=[DataRequired()])
+    stock_change_field = IntegerField('Change in Stock', validators=[DataRequired()])
+    submit = SubmitField('Change Stock')
+
+
 class TrustForm(FlaskForm):
     # Encoding yes:1, no:-1, none:None
     choices = [('no_selection', '...'), ('trust_user', 'Trust'), ('distrust_user', 'Distrust')]
@@ -40,8 +51,8 @@ class SearchBarForm(FlaskForm):
 
     title_field = StringField('Title')
     author_field = StringField('Author')
-    half_separation = SelectField('Half Degree Separation of Authorship',
-                                  choices=[('disabled', 'Disabled'), ('enabled', 'Enabled')])
+    half_separation = SelectField('1/2 Degree Separation of Authorship',
+                                  choices=[('disabled', 'Disabled'), ('enabled', '1-Degree'), ('enabled2', '2-Degree')])
     publisher_field = StringField('Publisher')
     language_field = StringField('Language')
     order_by_field = SelectField('Order By', choices=choices)

@@ -2,6 +2,7 @@
 
 {% block content %}
 <h1>{{ txt }}</h1>
+{% if recs %}
 {% for b in recs %}
         <article class="media content-section">
           <div class="media-body">
@@ -23,4 +24,5 @@
           </div>
         </article>
     {% endfor %}
+{% endif %}
 {% endblock content %}
