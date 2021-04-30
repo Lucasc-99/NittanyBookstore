@@ -196,13 +196,34 @@ def profile(userid):
 @login_required
 def recommended():
     recs = None
-    text = ""
     if len(current_user.orders) != 0:
         recs = []
-        text = "Order a book to receive recommendations"
+        txt = "Based on a previous order, we recommend the following books"
+        prev_o = Order.query.filter_by(user_id=current_user.id).all()[-1].book_isbn
+
+        q = f"""
+        SELECT DISTINCT b.ISBN
+        FROM User u, Book b, `Order` o1, `Order` o2
+        WHERE o1.book_isbn = '{prev_o}' AND
+                u.id = o1.user_id AND 
+                u.id <> {current_user.id} AND
+                o1.book_isbn <> o2.book_isbn AND
+                o2.user_id = u.id AND
+                o2.book_isbn = b.ISBN
+        """
+
+        query_txt = text(q)
+
+        q = db.session.execute(query_txt)
+
+        for row in q:
+            recs.append(Book.query.filter_by(ISBN=row[0]).first())
+
     else:
-        q = f""""""
-    return render_template('recommendedpage.html', recs=recs)
+        txt = "Order a book to receive recommendations"
+    if recs is not None and len(recs) == 0:
+        txt = "We have no recommendations for you based on your last order"
+    return render_template('recommendedpage.html', txt=txt, recs=recs)
 
 
 @app.route('/order_history')
@@ -314,3 +335,11 @@ def rating_page(rating_id):
             agg_u_score += s.useScore
 
     return render_template('rating_page.html', agg_u_score=agg_u_score, form=form, r=r, b=b, u=u)
+
+
+@app.route('/manager_dashboard')
+@login_required
+def manager_dashboard():
+    if current_user.access != 1:
+        flash('You do not have permission to access that page', 'danger')
+        redirect(url_for('home'))

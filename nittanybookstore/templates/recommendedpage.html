@@ -2,7 +2,7 @@
 
 {% block content %}
 <h1>{{ txt }}</h1>
-{% for b in books %}
+{% for b in recs %}
         <article class="media content-section">
           <div class="media-body">
             <h2><a class="article-title" href="{{ url_for('book', book_isbn=b.ISBN) }}">{{ b.title }}</a></h2>

@@ -108,6 +108,7 @@ class Rating(db.Model):
                                           backref=db.backref('sent_use_scores', lazy=True))
 
 '''
+
 def populate_costs_table():
     for b in Book.query.all():
         c = costs.insert().values(book_isbn=b.ISBN, cost=random.randint(8, 20))
