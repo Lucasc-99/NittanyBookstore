@@ -27,6 +27,9 @@
             <!-- Navbar Right Side -->
             <div class="navbar-nav">
                 {% if current_user.is_authenticated %}
+                    {% if current_user.access == 1 %}
+                        <a class="nav-item nav-link" href="{{ url_for('manager_dashboard') }}">Manager Dashboard</a>
+                    {% endif %}
                 <a class="nav-item nav-link" href="{{ url_for('profile', userid=current_user.id) }}">Profile</a>
                 <a class="nav-item nav-link" href="{{ url_for('order_history') }}">Order History</a>
                 <a class="nav-item nav-link" href="{{ url_for('logout') }}">Logout</a>

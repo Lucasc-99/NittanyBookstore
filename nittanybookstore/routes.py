@@ -340,6 +340,90 @@ def rating_page(rating_id):
 @app.route('/manager_dashboard')
 @login_required
 def manager_dashboard():
+    m = 5
     if current_user.access != 1:
         flash('You do not have permission to access that page', 'danger')
         redirect(url_for('home'))
+
+    most_pop_books = f"""
+        SELECT b.ISBN
+        FROM book b , `order` o
+        WHERE b.ISBN = o.book_isbn
+        GROUP BY b.ISBN
+        ORDER BY COUNT(DISTINCT o.orderID) DESC
+        LIMIT {m}
+    """
+
+    most_pop_authors = f"""
+            SELECT a.authorID
+            FROM author a, authors aut, 
+                (SELECT b.ISBN as book_isbn, COUNT(DISTINCT o.orderID) AS count
+                FROM book b INNER JOIN `order` o ON b.ISBN = o.book_isbn   
+                GROUP BY b.ISBN ) AS countsTable
+            WHERE 
+                a.authorID = aut.authorID AND 
+                aut.ISBN = countsTable.book_isbn
+            GROUP BY a.authorID
+            ORDER BY SUM(countsTable.count) DESC
+            LIMIT {m}
+        """
+
+    most_pop_publishers = f"""
+                SELECT DISTINCT b.publisher
+                FROM book b, `order` o
+                WHERE b.ISBN = o.book_isbn
+                GROUP BY b.publisher
+                ORDER BY COUNT(DISTINCT o.orderID) DESC
+                LIMIT {m}
+            """
+
+    most_trusted_users = f"""
+        SELECT DISTINCT u.id
+        FROM user u, trusts t
+        WHERE u.id = t.receiver
+        GROUP BY u.id
+        ORDER BY AVG(t.trustScore) DESC
+        LIMIT {m}
+    """
+
+    most_useful_users = f"""
+        SELECT DISTINCT receiver.id
+        FROM user sender, user receiver, usefulness u, rating r
+        WHERE sender.id = u.id AND u.ratingID = r.ratingID AND r.user_id = receiver.id
+        GROUP BY receiver.id
+        ORDER BY SUM(u.useScore) DESC
+        LIMIT {m}
+    """
+
+    q = text(most_pop_books)
+    q_result = db.session.execute(q)
+    m_books = []
+    for row in q_result:
+        m_books.append((Book.query.filter_by(ISBN=row[0]).first()))
+
+    q = text(most_pop_authors)
+    q_result = db.session.execute(q)
+    m_authors = []
+    for row in q_result:
+        m_authors.append((Author.query.filter_by(authorID=row[0]).first()))
+
+    q = text(most_pop_publishers)
+    q_result = db.session.execute(q)
+    m_pubs = []
+    for row in q_result:
+        m_pubs.append(row[0])
+
+    q = text(most_trusted_users)
+    q_result = db.session.execute(q)
+    m_trust_users = []
+    for row in q_result:
+        m_trust_users.append((User.query.filter_by(id=row[0]).first()))
+
+    q = text(most_useful_users)
+    q_result = db.session.execute(q)
+    m_use_users = []
+    for row in q_result:
+        m_use_users.append((User.query.filter_by(id=row[0]).first()))
+
+    return render_template('managerdashboardpage.html', m_books=m_books, m_authors=m_authors,
+                           m_pubs=m_pubs, m_trust_users=m_trust_users, m_use_users=m_use_users)

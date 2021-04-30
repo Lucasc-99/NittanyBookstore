@@ -1,0 +1,80 @@
+{% extends "layout.html" %}
+{% block content %}
+<h1>Manager Dashboard</h1>
+
+<br>
+<br>
+<h2>Add book or change stock level</h2>
+
+<br>
+<br>
+<h2>Promote user to superuser</h2>
+
+<br>
+<br>
+<h2>Most Popular Books this Quarter: </h2>
+
+{% for b in m_books %}
+    <article class="media content-section">
+          <div class="media-body">
+            <h3><a class="article-title" href="{{ url_for('book', book_isbn=b.ISBN) }}">{{ m_books.index(b) + 1 }}: {{ b.title }}</a></h3>
+
+          </div>
+        </article>
+{% endfor %}
+
+<br>
+<br>
+
+<h2>Most Popular Authors this Quarter: </h2>
+
+{% for a in m_authors %}
+    <article class="media content-section">
+          <div class="media-body">
+            <h3><a class="article-title">{{ m_authors.index(a) + 1 }}: {{ a.fname }} {{ a.lname }}</a></h3>
+          </div>
+        </article>
+{% endfor %}
+
+<br>
+<br>
+
+<h2>Most Popular Publishers this Quarter: </h2>
+
+{% for p in m_pubs %}
+    <article class="media content-section">
+          <div class="media-body">
+            <h3><a class="article-title">{{ m_pubs.index(p) + 1 }}: {{ p }}</a></h3>
+          </div>
+        </article>
+{% endfor %}
+
+<br>
+<br>
+
+<h2>The Most Trusted Users</h2>
+
+{% for u in m_trust_users %}
+    <article class="media content-section">
+          <div class="media-body">
+            <h3><a class="article-title" href="url_for('profile', u.id)">{{ m_trust_users.index(u) + 1 }}: {{ u.logname }}</a></h3>
+          </div>
+        </article>
+{% endfor %}
+
+<br>
+<br>
+
+<h2>The Most Useful Users</h2>
+
+{% for u in m_use_users %}
+    <article class="media content-section">
+          <div class="media-body">
+            <h3><a class="article-title" href="url_for('profile', u.id)">{{ m_use_users.index(u) + 1 }}: {{ u.logname }}</a></h3>
+          </div>
+        </article>
+{% endfor %}
+{% endblock content %}
+
+<br>
+<br>
