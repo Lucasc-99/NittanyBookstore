@@ -2,9 +2,60 @@
 {% block content %}
 <h1>Manager Dashboard</h1>
 
+
 <br>
 <br>
-<h2>Add book or change stock level</h2>
+<h2>Add Book</h2>
+<article class="media content-section">
+            <div class="media-body">
+        <form method="POST" action="">
+            {{ a_form.hidden_tag() }}
+            <fieldset class ="form-group">
+              <div class="form-group">
+                  ISBN:
+                  {{ a_form.ISBN(class="form-control form-control-lg") }}
+              </div>
+                <div class="form-group">
+                  Title:
+                  {{ a_form.title(class="form-control form-control-lg") }}
+              </div>
+                <div class="form-group">
+                  Stock:
+                  {{ a_form.stock(class="form-control form-control-lg") }}
+              </div>
+                <div class="form-group">
+                  Price:
+                  {{ a_form.price(class="form-control form-control-lg") }}
+              </div>
+
+                <div class="form-group">
+                  Genre:
+                  {{ a_form.genre(class="form-control form-control-lg") }}
+              </div>
+                <div class="form-group">
+                  Publisher:
+                  {{ a_form.publisher(class="form-control form-control-lg") }}
+              </div>
+                <div class="form-group">
+                  Language:
+                  {{ a_form.language(class="form-control form-control-lg") }}
+              </div>
+                <div class="form-group">
+                    Date: mm/dd/yyyy
+                  {{ a_form.d(class="form-control form-control-lg") }}
+              </div>
+
+            </fieldset>
+            <div class="form-group">
+              {{ a_form.submit(class="btn btn-outline-info")}}
+            </div>
+          </form>
+                </div>
+        </article>
+<br>
+<br>
+
+<h2>Change stock level</h2>
 <article class="media content-section">
             <div class="media-body">
         <form method="POST" action="">

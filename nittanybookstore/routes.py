@@ -2,7 +2,8 @@ from flask import render_template, url_for, flash, redirect, request
 from sqlalchemy import text
 from datetime import date
 from nittanybookstore.forms import LoginForm, RegistrationForm, SearchBarForm, RateForm, \
-    OrderForm, TrustForm, UsefulnessForm, TopNRatingsForm, PromoteUserForm, StockLevelForm, FilterStatisticsForm
+    OrderForm, TrustForm, UsefulnessForm, TopNRatingsForm, PromoteUserForm, \
+    StockLevelForm, FilterStatisticsForm, AddBookForm
 from nittanybookstore import app, bcrypt
 from nittanybookstore.models import *
 from flask_login import login_user, current_user, login_required, logout_user
@@ -387,6 +388,8 @@ def manager_dashboard():
     today = date.today()
     last_quarter = today.replace(month=today.month - 3)
     filter_form = FilterStatisticsForm()
+    a_form = AddBookForm()
+
     if filter_form.validate_on_submit():
         m = filter_form.m.data
     else:
@@ -500,6 +503,32 @@ def manager_dashboard():
         else:
             flash('User not found!', 'danger')
 
-    return render_template('managerdashboardpage.html',s_form=s_form, p_form=p_form, m_books=m_books, m_authors=m_authors,
+    elif a_form.validate_on_submit():
+        print("Bruh")
+        b = Book.query.filter_by(ISBN=a_form.ISBN.data).first()
+        if b is not None:
+            flash('A book with that ISBN already exists', 'danger')
+        else:
+            d = None
+            flag = True
+            if a_form.d.data != "":
+                try:
+                    d = datetime.strptime(a_form.d.data, '%m/%d/%Y')
+                except:
+                    flag = False
+            if flag:
+                b = Book(ISBN=a_form.ISBN.data, title=a_form.title.data,
+                         stock=a_form.stock.data, genre=a_form.genre.data, publisher=a_form.publisher.data,
+                         language=a_form.language.data, date=d)
+                c = costs.insert().values(book_isbn=b.ISBN, cost=a_form.price.data)
+                db.session.execute(c)
+                db.session.add(b)
+                db.session.commit()
+                flash(f'Successfully added {b.title}', 'success')
+            else:
+                flash(f'Incorrect date format', 'danger')
+    print("Bruh 2")
+    return render_template('managerdashboardpage.html', a_form=a_form,
+                           s_form=s_form, p_form=p_form, m_books=m_books, m_authors=m_authors,
                            m_pubs=m_pubs, m_trust_users=m_trust_users, m_use_users=m_use_users,
                            filter_form=filter_form)

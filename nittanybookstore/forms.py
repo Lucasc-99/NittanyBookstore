@@ -1,11 +1,24 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, SelectField, IntegerField, TextAreaField, BooleanField
+from wtforms import StringField, PasswordField, SubmitField, SelectField, IntegerField, TextAreaField, DateField
 from wtforms.validators import DataRequired, Length, EqualTo, NumberRange
+
+
+class AddBookForm(FlaskForm):
+    ISBN = StringField('ISBN', validators=[DataRequired(), Length(max=15)])
+    title = StringField('title', validators=[DataRequired(), Length(max=400)])
+    stock = IntegerField('stock', validators=[DataRequired()])
+    price = IntegerField('price', validators=[DataRequired()])
+    genre = StringField('genre', validators=[DataRequired(), Length(max=50)])
+    publisher = StringField('publisher', validators=[DataRequired(), Length(max=50)])
+    language = StringField('lang', validators=[DataRequired(), Length(max=50)])
+    d = StringField('d')
+    submit = SubmitField('Add')
 
 
 class FilterStatisticsForm(FlaskForm):
     m = IntegerField('m', validators=[DataRequired()])
     submit = SubmitField('Filter')
+
 
 class PromoteUserForm(FlaskForm):
     logname_field = StringField('User Login Name', validators=[DataRequired()])
