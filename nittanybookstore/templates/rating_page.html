@@ -1,6 +1,41 @@
 {% extends "layout.html" %}
 
 {% block content %}
-<h1>{{ r.book_isbn }}</h1>
-<h2>{{ r.user_id }}</h2>
+<article class="media content-section">
+          <div class="media-body">
+              <h3><a class="article-title" href="{{ url_for('book', book_isbn=b.ISBN) }}">{{ b.title }}</a></h3>
+              {% if u.query.filter_by(id=r.user_id).first() %}
+                <p class="article-content"><a class="article-title" href="{{url_for('profile',userid=u.query.filter_by(id=r.user_id).first().id)}}">
+                     review by: {{ u.query.filter_by(id=r.user_id).first().logname }}</a></p>
+              {% else %}
+                <p><a class="article-content" href="#">written by Anonymous</a></p>
+              {% endif %}
+             <p class="article-content">Score: {{ r.ratingScore }}/10</p>
+            {% if r.ratingComment %}
+              <p class="article-content">Comment: {{ r.ratingComment }}</p>
+            {% endif %}
+              <p class="article-content">Average Use Score: {{ agg_u_score }}</p>
+          </div>
+</article>
+
+
+<article class="media content-section">
+    <div class="media-body">
+<form method="POST" action="">
+    {{ form.hidden_tag() }}
+    <fieldset class ="form-group">
+      <div class="form-group">
+          Give this rating a usefulness score:
+          {{ form.use_field(class="form-control form-control-lg") }}
+      </div>
+
+    </fieldset>
+    <div class="form-group">
+      {{ form.submit(class="btn btn-outline-info")}}
+    </div>
+  </form>
+        </div>
+</article>
+
+
 {% endblock content %}

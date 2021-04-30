@@ -1,5 +1,26 @@
 {% extends "layout.html" %}
 
 {% block content %}
-<h1>Recommended Page Under Construction</h1>
+<h1>{{ txt }}</h1>
+{% for b in books %}
+        <article class="media content-section">
+          <div class="media-body">
+            <h2><a class="article-title" href="{{ url_for('book', book_isbn=b.ISBN) }}">{{ b.title }}</a></h2>
+              {% for a in b.authors %}
+                    <p class="article-content">{{ a.fname }} {{ a.lname }}</p>
+              {% endfor %}
+              {% if b.publisher %}
+              <p class="article-content">{{ b.publisher }}</p>
+              {% endif %}
+              {% if b.language %}
+              <p class="article-content">{{ b.language.upper() }}</p>
+              {% endif %}
+              {% if b.date %}
+              <p class="article-content">{{ b.date.date() }}</p>
+              {% endif %}
+              <p class="article-content">Stock: {{ b.stock }}</p>
+
+          </div>
+        </article>
+    {% endfor %}
 {% endblock content %}

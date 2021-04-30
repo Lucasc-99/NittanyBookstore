@@ -12,7 +12,7 @@ class TrustForm(FlaskForm):
 
 class UsefulnessForm(FlaskForm):
     # Encoding useless:-1, useful:1, very useful:2
-    choices = [('useless', 'Useless'), ('useful', 'Useful'), ('very_useful','Very Useful')]
+    choices = [('...', '...'),('useless', 'Useless'), ('useful', 'Useful'), ('very_useful', 'Very Useful')]
     use_field = SelectField('use', choices=choices, validators=[DataRequired()])
     submit = SubmitField('Submit')
 
@@ -20,6 +20,11 @@ class UsefulnessForm(FlaskForm):
 class OrderForm(FlaskForm):
     quantity_field = IntegerField('Quantity (max 10 books)', validators=[DataRequired(), NumberRange(1, 10)])
     submit = SubmitField('Order')
+
+
+class TopNRatingsForm(FlaskForm):
+    n = IntegerField('Top n useful ratings:', validators=[DataRequired(), NumberRange(1, 10)])
+    submit = SubmitField('Filter')
 
 
 class RateForm(FlaskForm):

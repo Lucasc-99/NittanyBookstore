@@ -2,14 +2,12 @@ from flask import render_template, url_for, flash, redirect, request
 from sqlalchemy import text
 import datetime
 
-from nittanybookstore.forms import LoginForm, RegistrationForm, SearchBarForm, RateForm, OrderForm, TrustForm
+from nittanybookstore.forms import LoginForm, RegistrationForm, SearchBarForm, RateForm, \
+    OrderForm, TrustForm, UsefulnessForm, TopNRatingsForm
 from nittanybookstore import app, bcrypt
 from nittanybookstore.models import *
 from flask_login import login_user, current_user, login_required, logout_user
 
-
-def get_user_avg_trust_rating(id):
-    u = User.query.filter_by(id=id).first()
 
 @app.route('/homepage', methods=['GET', 'POST'])
 @login_required
@@ -22,20 +20,13 @@ def home():
         order = ""
         sub = ""
         ratings_sub = "rating r"
-        authorship = "a.authorID = aut.authorID"
 
-        if s_form.half_separation.data == 'enabled':
-            authorship = f"""
-                
-            """
-
-        if s_form.order_by_field.data=='avgtrustedscore':
+        if s_form.order_by_field.data == 'avgtrustedscore':
             ratings_sub = f"""
                 (SELECT book_isbn, ratingScore
                 FROM (Rating r INNER JOIN User u ON r.user_id = u.id) INNER JOIN trusts t ON t.receiver = u.id 
                 GROUP BY u.id
                 HAVING SUM(t.trustScore) > 0) AS r
-                
             """
 
         if s_form.order_by_field.data == "avgscore" or s_form.order_by_field.data == 'avgtrustedscore':
@@ -43,7 +34,7 @@ def home():
             sub = f"""
                 LEFT OUTER JOIN (SELECT b.ISBN AS isbn, AVG(r.ratingScore) as rateavg FROM book b, {ratings_sub} 
                 WHERE b.ISBN = r.book_isbn 
-                GROUP BY b.ISBN 
+                GROUP BY b.ISBN
                 ) rateavgs ON rateavgs.isbn = b.ISBN 
             """
         elif s_form.order_by_field.data == "date":
@@ -51,19 +42,55 @@ def home():
 
         query_txt = f"""
             SELECT DISTINCT b.ISBN 
-            FROM book b {sub}, authors aut, author a 
+            FROM book b {sub}, authors aut, author a
             WHERE 
-                b.ISBN = aut.ISBN AND 
-                a.authorID = aut.authorID AND 
-                (a.fname || ' ' || a.lname) LIKE '%{s_form.author_field.data}%' AND 
+                b.ISBN = aut.ISBN AND a.authorID = aut.authorID AND 
+                ((a.fname || ' ' || a.lname) LIKE '%{s_form.author_field.data}%')  AND 
                 b.publisher LIKE '%{s_form.publisher_field.data}%' AND 
                 b.title LIKE '%{s_form.title_field.data}%' AND 
                 b.language LIKE '%{s_form.language_field.data}%'  
                  {order} 
                 LIMIT 100     
         """
+
+        if s_form.half_separation.data == 'enabled' and s_form.author_field.data != "":
+            half_sub = f"""(
+                        SELECT a1.authorID as a1id, a2.authorID as a2id,
+                                (a2.fname||' '||a2.lname) as a2name
+                        FROM authors aut1 LEFT JOIN author a1 ON aut1.authorID = a1.authorID,
+                            authors aut2 LEFT JOIN author a2 ON aut2.authorID = a2.authorID
+                        WHERE 
+                            a1.authorID != a2.authorID
+                        LIMIT 100
+                        ) AS collabs """
+
+            authors_sub_q = f"""
+                (SELECT DISTINCT a.authorID 
+                FROM author a, {half_sub}
+                WHERE 
+                ((a.fname || ' ' || a.lname) LIKE '%{s_form.author_field.data}%') OR
+                (a.authorID = collabs.a1id AND collabs.a2name LIKE '%{s_form.author_field.data}%') 
+                LIMIT 100
+                )
+                
+            """
+            query_txt = f"""
+                SELECT DISTINCT b.ISBN
+                FROM   book b {sub} INNER JOIN authors aut ON b.ISBN = aut.ISBN  
+                    INNER JOIN
+                    {authors_sub_q} a ON aut.authorID = a.authorID
+                WHERE
+                b.publisher LIKE '%{s_form.publisher_field.data}%' AND 
+                b.title LIKE '%{s_form.title_field.data}%' AND 
+                b.language LIKE '%{s_form.language_field.data}%'
+                {order}
+                LIMIT 100
+            """
+
         query_txt = text(query_txt)
+
         q = db.session.execute(query_txt)
+
         for row in q:
             books.append(Book.query.filter_by(ISBN=row[0]).first())
 
@@ -165,10 +192,17 @@ def profile(userid):
                            form=t_form, prompt_text=prompt_text, agg_t_score=agg_t_score)
 
 
-@app.route('/recommended_page')
+@app.route('/recommended_page', methods=['GET', 'POST'])
 @login_required
 def recommended():
-    return render_template('recommendedpage.html')
+    recs = None
+    text = ""
+    if len(current_user.orders) != 0:
+        recs = []
+        text = "Order a book to receive recommendations"
+    else:
+        q = f""""""
+    return render_template('recommendedpage.html', recs=recs)
 
 
 @app.route('/order_history')
@@ -185,9 +219,30 @@ def book(book_isbn):
     c = db.session.query(costs).filter_by(book_isbn=book_isbn).first()
     r_form = RateForm()
     o_form = OrderForm()
+    f_form = TopNRatingsForm()
+    ratings_list = []
 
     if b:
-        if r_form.validate_on_submit():
+        if f_form.validate_on_submit():
+            n = str(f_form.n.data)
+            q = f"""
+                SELECT DISTINCT r.ratingID 
+                FROM rating r LEFT OUTER JOIN
+                    (SELECT AVG(u.useScore) AS avguscore, r.ratingID AS ratingID FROM rating r, usefulness u
+                        WHERE r.ratingID = u.ratingID
+                        GROUP BY r.ratingID
+                    ) u ON r.ratingID = u.ratingID
+                WHERE r.book_isbn = "{b.ISBN}"
+                ORDER BY u.avguscore DESC
+                LIMIT {n}
+            """
+            query_txt = text(q)
+
+            q_list = db.session.execute(query_txt)
+            for row in q_list:
+                ratings_list.append(Rating.query.filter_by(ratingID=row[0]).first())
+
+        elif r_form.validate_on_submit():
             rec = Rating.query.filter_by(user_id=current_user.id, book_isbn=book_isbn).first()
             print(type(r_form.rate_score_field.data))
             if rec is None:
@@ -204,7 +259,7 @@ def book(book_isbn):
                 flash(f'You have already reviewed this book', 'danger')
         elif o_form.validate_on_submit():
             if b.stock - o_form.quantity_field.data > 0:
-                order = Order(price=c.cost*o_form.quantity_field.data, time=datetime.now(),
+                order = Order(price=c.cost * o_form.quantity_field.data, time=datetime.now(),
                               amount=o_form.quantity_field.data, user_id=current_user.id, book_isbn=book_isbn)
                 db.session.add(order)
                 b.stock = b.stock - o_form.quantity_field.data
@@ -214,15 +269,48 @@ def book(book_isbn):
                 flash(f'That order cannot be satisfied with our current stock', 'danger')
         elif request.method == 'POST':
             flash(f'Make sure you are filling out your order or rating correctly', 'danger')
-        return render_template('bookpage.html', b=b, c=c, u=User, image_file=img, form=r_form, form_order=o_form)
+        if not f_form.validate_on_submit():
+            ratings_list = b.ratings
+        return render_template('bookpage.html', f_form=f_form,
+                               ratings_list=ratings_list, b=b, c=c, u=User,
+                               image_file=img, form=r_form, form_order=o_form)
     else:
         return redirect(url_for('home'))
 
 
-@app.route('/rating/<rating_id>')
+@app.route('/rating/<rating_id>', methods=['GET', 'POST'])
 @login_required
 def rating_page(rating_id):
     r = Rating.query.filter_by(ratingID=rating_id).first()
     b = Book.query.filter_by(ISBN=r.book_isbn).first()
-    u = User.query.filter_by(id=r.user_id).first()
-    return render_template('rating_page.html', r=r, b=b, u=u)
+    u = User
+
+    form = UsefulnessForm()
+
+    if current_user.id != r.user_id and form.validate_on_submit():
+        use_score = None
+        if form.use_field.data == 'useless':
+            use_score = -1
+        elif form.use_field.data == 'useful':
+            use_score = 1
+        elif form.use_field.data == 'very_useful':
+            use_score = 2
+
+        if current_user in r.received_use_scores:
+            db.session.query(usefulness).filter_by(ratingID=r.ratingID, id=current_user.id).update(
+                dict(useScore=use_score))
+        else:
+            ins = usefulness.insert().values(id=current_user.id, ratingID=r.ratingID, useScore=use_score)
+            db.session.execute(ins)
+        db.session.commit()
+
+    elif current_user.id != r.user_id and form.validate_on_submit():
+        flash('You cannot score your own review!', 'danger')
+
+    agg_u_score = 0
+    received_scores = db.session.query(usefulness).filter_by(ratingID=r.ratingID).all()
+    for s in received_scores:
+        if s.useScore:
+            agg_u_score += s.useScore
+
+    return render_template('rating_page.html', agg_u_score=agg_u_score, form=form, r=r, b=b, u=u)

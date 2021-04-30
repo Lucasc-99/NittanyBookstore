@@ -56,6 +56,9 @@
               <p class="article-content">{{ r.ratingComment }}</p>
             {% endif %}
           </div>
+      <p class="text-secondary"><a class="text-secondary" href="{{ url_for('rating_page', rating_id = r.ratingID) }}">
+          Find this rating useful? </a></p>
+
 </article>
 {% endfor %}
 
