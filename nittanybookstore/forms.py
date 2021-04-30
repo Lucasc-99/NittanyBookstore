@@ -3,6 +3,10 @@ from wtforms import StringField, PasswordField, SubmitField, SelectField, Intege
 from wtforms.validators import DataRequired, Length, EqualTo, NumberRange
 
 
+class FilterStatisticsForm(FlaskForm):
+    m = IntegerField('m', validators=[DataRequired()])
+    submit = SubmitField('Filter')
+
 class PromoteUserForm(FlaskForm):
     logname_field = StringField('User Login Name', validators=[DataRequired()])
     submit = SubmitField('Promote')

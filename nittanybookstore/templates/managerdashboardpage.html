@@ -48,6 +48,28 @@
         </article>
 <br>
 <br>
+<h2>Filter Statistics: </h2>
+
+    <article class="media content-section">
+            <div class="media-body">
+        <form method="POST" action="">
+            {{ filter_form.hidden_tag() }}
+            <fieldset class ="form-group">
+              <div class="form-group">
+                  m =
+                  {{ filter_form.m(class="form-control form-control-lg") }}
+              </div>
+
+            </fieldset>
+            <div class="form-group">
+              {{ filter_form.submit(class="btn btn-outline-info")}}
+            </div>
+          </form>
+                </div>
+        </article>
+
+<br>
+<br>
 <h2>Most Popular Books this Quarter: </h2>
 
 {% for b in m_books %}
@@ -93,7 +115,7 @@
 {% for u in m_trust_users %}
     <article class="media content-section">
           <div class="media-body">
-            <h3><a class="article-title" href="url_for('profile', u.id)">{{ m_trust_users.index(u) + 1 }}: {{ u.logname }}</a></h3>
+            <h3><a class="article-title" href="{{url_for('profile', userid=u.id)}}">{{ m_trust_users.index(u) + 1 }}: {{ u.logname }}</a></h3>
           </div>
         </article>
 {% endfor %}
@@ -106,7 +128,7 @@
 {% for u in m_use_users %}
     <article class="media content-section">
           <div class="media-body">
-            <h3><a class="article-title" href="url_for('profile', u.id)">{{ m_use_users.index(u) + 1 }}: {{ u.logname }}</a></h3>
+            <h3><a class="article-title" href="{{url_for('profile', userid=u.id)}}">{{ m_use_users.index(u) + 1 }}: {{ u.logname }}</a></h3>
           </div>
         </article>
 {% endfor %}

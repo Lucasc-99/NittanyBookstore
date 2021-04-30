@@ -2,7 +2,7 @@ from flask import render_template, url_for, flash, redirect, request
 from sqlalchemy import text
 from datetime import date
 from nittanybookstore.forms import LoginForm, RegistrationForm, SearchBarForm, RateForm, \
-    OrderForm, TrustForm, UsefulnessForm, TopNRatingsForm, PromoteUserForm, StockLevelForm
+    OrderForm, TrustForm, UsefulnessForm, TopNRatingsForm, PromoteUserForm, StockLevelForm, FilterStatisticsForm
 from nittanybookstore import app, bcrypt
 from nittanybookstore.models import *
 from flask_login import login_user, current_user, login_required, logout_user
@@ -386,7 +386,11 @@ def rating_page(rating_id):
 def manager_dashboard():
     today = date.today()
     last_quarter = today.replace(month=today.month - 3)
-    m = 5
+    filter_form = FilterStatisticsForm()
+    if filter_form.validate_on_submit():
+        m = filter_form.m.data
+    else:
+        m = 5
     if current_user.access != 1:
         flash('You do not have permission to access that page', 'danger')
         redirect(url_for('home'))
@@ -431,7 +435,7 @@ def manager_dashboard():
         FROM user u, trusts t
         WHERE u.id = t.receiver
         GROUP BY u.id
-        ORDER BY AVG(t.trustScore) DESC
+        ORDER BY SUM(t.trustScore) DESC
         LIMIT {m}
     """
 
@@ -497,4 +501,5 @@ def manager_dashboard():
             flash('User not found!', 'danger')
 
     return render_template('managerdashboardpage.html',s_form=s_form, p_form=p_form, m_books=m_books, m_authors=m_authors,
-                           m_pubs=m_pubs, m_trust_users=m_trust_users, m_use_users=m_use_users)
+                           m_pubs=m_pubs, m_trust_users=m_trust_users, m_use_users=m_use_users,
+                           filter_form=filter_form)
