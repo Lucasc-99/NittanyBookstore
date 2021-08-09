@@ -1,5 +1,5 @@
 
-<h1> Nittany Bookstore: a Flask/SQL Bookstore Web App </h1>
+<h1> Nittany Bookstore: a Flask/SQL Web App </h1>
 
 
 A final project for the Database Management Systems Course at Penn State (CMPSC 431W)
