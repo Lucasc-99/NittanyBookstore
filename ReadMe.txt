@@ -2,6 +2,9 @@ Lucas Cecchi
 
 431W Bookstore Project: Nittany Bookstore
 
+
+NOTE: See mp4 file for video presentation
+
 This web app was made using Flask and Bootstrap. The backend was made using Flask-Sqlalchemy as well as raw SQLite. 
 
 To run this project, make sure all the requirements (found in requirements.txt) are installed. Note that there may be some missing requirements depending on your system.
