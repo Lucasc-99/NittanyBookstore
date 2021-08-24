@@ -4,7 +4,7 @@
 
 This was submitted as a final project for the Database Management Systems Course at Penn State.
 
-This project was made using Flask and Bootstrap. The backend was made using Flask-Sqlalchemy as well as raw SQLite. It was submitted as a final project for the Database Management Systems Course at Penn State .
+This project was made using Flask and Bootstrap. The backend was made using Flask-Sqlalchemy as well as raw SQLite. 
 
 To run this project, make sure all the requirements (found in requirements.txt) are installed. Note that there may be some missing requirements depending on your system.
 Next, find and execute the run.py file to launch the website. The address should be 127.0.0.1:5000. The Pycharm virtual environment I used is also included along with this project.
