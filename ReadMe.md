@@ -2,7 +2,7 @@
 <h1> Nittany Bookstore: a Flask/SQL Web App </h1>
 
 
-This was submitted as a final project for the Database Management Systems Course at Penn State (CMPSC 431W).
+This was submitted as a final project for the Database Management Systems Course at Penn State.
 
 This project was made using Flask and Bootstrap. The backend was made using Flask-Sqlalchemy as well as raw SQLite. It was submitted as a final project for the Database Management Systems Course at Penn State (CMPSC 431W).
 
